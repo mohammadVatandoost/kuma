@@ -24,6 +24,8 @@ jobs:
       run: make images
 
     - name: Push Images
+      env:
+        ALLOW_PUSH: true
       run: make docker/push
       
    
