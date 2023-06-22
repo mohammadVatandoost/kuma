@@ -20,7 +20,12 @@ jobs:
     - name: install-kuma-ci-tools
       run: |
         echo $(go env GOPATH)/bin >> $GITHUB_PATH
-        go install github.com/kumahq/ci-tools/cmd/release-tool@latest  
+        go install github.com/kumahq/ci-tools/cmd/release-tool@latest
+
+    - name: Install kumactl
+      run: |
+        curl -L https://docs.konghq.com/mesh/installer.sh | sh -
+        cp kong-mesh-*/bin/kumactl /usr/local/bin/kumactl      
 
     - name: Docker login
       run: docker login  -u $DOCKER_REPOSITORY_NAME -p $DOCKER_REPOSITORY_ACCESS_TOKEN
