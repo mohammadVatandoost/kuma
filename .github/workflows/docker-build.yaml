@@ -16,7 +16,12 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@v3
-      
+
+    - name: install-kuma-ci-tools
+      run: |
+        echo $(go env GOPATH)/bin >> $GITHUB_PATH
+        go install github.com/kumahq/ci-tools/cmd/release-tool@latest  
+
     - name: Docker login
       run: docker login  -u $DOCKER_REPOSITORY_NAME -p $DOCKER_REPOSITORY_ACCESS_TOKEN
 
@@ -27,6 +32,9 @@ jobs:
       env:
         ALLOW_PUSH: true
       run: make docker/push
+
+    - name: Deploy Images
+      run: kumactl install control-plane --registry=docker.io/mvatandoost | kubectl apply -f - 
       
    
 
