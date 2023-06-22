@@ -1,0 +1,30 @@
+name: "build docker images"
+
+on:
+  push:
+  workflow_dispatch:
+
+env:
+  DOCKER_REPOSITORY_ACCESS_TOKEN: ${{ secrets.DOCKER_REPOSITORY_ACCESS_TOKEN }}
+  DOCKER_REPOSITORY_NAME: ${{ vars.DOCKER_REPOSITORY_NAME }}
+  # IMAGE_TAG: latest # $GITHUB_SHA::6
+
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+      
+    - name: Docker login
+      run: docker login  -u $DOCKER_REPOSITORY_NAME -p $DOCKER_REPOSITORY_ACCESS_TOKEN
+
+    - name: Build 
+      run: make images
+
+    - name: Push Images
+      run: make docker/push
+      
+   
+
