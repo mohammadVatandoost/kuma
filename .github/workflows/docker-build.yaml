@@ -8,6 +8,7 @@ env:
   DOCKER_REPOSITORY_ACCESS_TOKEN: ${{ secrets.DOCKER_REPOSITORY_ACCESS_TOKEN }}
   DOCKER_REPOSITORY_NAME: ${{ vars.DOCKER_REPOSITORY_NAME }}
   CLUSTER_NAME: ${{ vars.CLUSTER_NAME }}
+  CLUSTER_ZONE: ${{ vars.CLUSTER_ZONE }}
   # IMAGE_TAG: latest # $GITHUB_SHA::6
 
 
@@ -18,13 +19,24 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v3
 
-    - name: Install doctl
-      uses: digitalocean/action-doctl@v2
+    - id: 'auth'
+      name: 'Obtain access token by using workload identity federation'
+      uses: 'google-github-actions/auth@v0'
       with:
-        token: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
+        credentials_json: ${{ secrets.GOOGLE_CREDENTIALS }}
+    - name: Connect to GKE
+      uses: google-github-actions/get-gke-credentials@v0
+      with:
+        cluster_name: ${{ env.CLUSTER_NAME }}
+        location: ${{ env.CLUSTER_ZONE }}
+
+    # - name: Install doctl
+    #   uses: digitalocean/action-doctl@v2
+    #   with:
+    #     token: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
   
-    - name: Save DigitalOcean kubeconfig with short-lived credentials
-      run: doctl kubernetes cluster kubeconfig save --expiry-seconds 600 ${{ env.CLUSTER_NAME }}
+    # - name: Save DigitalOcean kubeconfig with short-lived credentials
+    #   run: doctl kubernetes cluster kubeconfig save --expiry-seconds 600 ${{ env.CLUSTER_NAME }}
 
     - name: install-kuma-ci-tools
       run: |
