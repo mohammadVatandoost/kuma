@@ -59,8 +59,8 @@ jobs:
         ALLOW_PUSH: true
       run: make docker/push
 
-    - name: Deploy Images
-      run: kumactl install control-plane --registry=docker.io/mvatandoost | kubectl apply -f - 
+    # - name: Deploy Images
+    #   run: kumactl install control-plane --registry=docker.io/mvatandoost --log-level=debug --version=0.0.0-preview.vcc8450579-amd64 | kubectl apply -f - 
       
    
 
