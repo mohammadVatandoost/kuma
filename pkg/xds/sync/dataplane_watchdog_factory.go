@@ -32,6 +32,7 @@ func NewDataplaneWatchdogFactory(
 
 func (d *dataplaneWatchdogFactory) New(dpKey model.ResourceKey) util_watchdog.Watchdog {
 	log := xdsServerLog.WithName("dataplane-sync-watchdog").WithValues("dataplaneKey", dpKey)
+	log.Info("START New SYNCER")
 	dataplaneWatchdog := NewDataplaneWatchdog(d.deps, dpKey)
 	ctx, cancelFn := context.WithCancel(user.Ctx(context.Background(), user.ControlPlane))
 	return &util_watchdog.SimpleWatchdog{
@@ -43,6 +44,7 @@ func (d *dataplaneWatchdogFactory) New(dpKey model.ResourceKey) util_watchdog.Wa
 			defer func() {
 				d.xdsMetrics.XdsGenerations.Observe(float64(core.Now().Sub(start).Milliseconds()))
 			}()
+			log.WithValues("dpType", dataplaneWatchdog.dpType).WithValues("key", dataplaneWatchdog.key).Info("OnTick")
 			return dataplaneWatchdog.Sync(ctx)
 		},
 		OnError: func(err error) {
