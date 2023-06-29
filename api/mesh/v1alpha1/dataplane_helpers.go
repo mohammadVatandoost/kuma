@@ -44,6 +44,7 @@ const (
 	DataplaneProxyType ProxyType = "dataplane"
 	IngressProxyType   ProxyType = "ingress"
 	EgressProxyType    ProxyType = "egress"
+	GRPCProxyLessType ProxyType = "dataplane-grpc-proxyless"
 )
 
 func (t ProxyType) IsValid() error {

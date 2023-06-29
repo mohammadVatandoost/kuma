@@ -72,7 +72,7 @@ func newRunCmdWithOpts(opts kuma_cmd.RunCmdOpts) *cobra.Command {
 			}
 			runLog.Info(fmt.Sprintf("Current config %s", cfgBytes))
 			runLog.Info(fmt.Sprintf("Running in mode `%s`", cfg.Mode))
-
+			
 			if err := os.RaiseFileLimit(); err != nil {
 				runLog.Error(err, "unable to raise the open file limit")
 			}
