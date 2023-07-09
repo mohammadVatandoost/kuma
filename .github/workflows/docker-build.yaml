@@ -51,7 +51,13 @@ jobs:
     - name: Docker login
       run: docker login  -u $DOCKER_REPOSITORY_NAME -p $DOCKER_REPOSITORY_ACCESS_TOKEN
 
+    - name: download modules 
+      run: go mod download
+
     - name: Build 
+      run: make biuld
+
+    - name: Build images 
       run: make images
 
     - name: Push Images
