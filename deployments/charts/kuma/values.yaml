@@ -25,7 +25,7 @@ controlPlane:
   extraLabels: {}
 
   # -- Kuma CP log level: one of off,info,debug
-  logLevel: "info"
+  logLevel: "debug"
 
   # -- Kuma CP log output path: Defaults to /dev/stdout
   logOutputPath: ""
@@ -312,7 +312,7 @@ cni:
   # -- Set the CNI configuration name
   confName: kuma-cni.conf
   # -- CNI log level: one of off,info,debug
-  logLevel: info
+  logLevel: debug
   # -- Node Selector for the CNI pods
   nodeSelector:
     kubernetes.io/os: linux

@@ -6,6 +6,7 @@ import (
 
 	"github.com/pkg/errors"
 
+	"github.com/kumahq/kuma/pkg/core"
 	core_model "github.com/kumahq/kuma/pkg/core/resources/model"
 	core_xds "github.com/kumahq/kuma/pkg/core/xds"
 	util_xds "github.com/kumahq/kuma/pkg/util/xds"
@@ -28,6 +29,8 @@ type DataplaneCallbacks interface {
 	// OnProxyDisconnected is executed only when the last stream of the proxy disconnects.
 	OnProxyDisconnected(ctx context.Context, streamID core_xds.StreamID, dpKey core_model.ResourceKey)
 }
+
+var dataPlaneCallbackLog = core.Log.WithName("xds").WithName("data-plane-callback")
 
 type xdsCallbacks struct {
 	callbacks DataplaneCallbacks
@@ -73,6 +76,8 @@ func (d *xdsCallbacks) OnStreamClosed(streamID core_xds.StreamID) {
 }
 
 func (d *xdsCallbacks) OnStreamRequest(streamID core_xds.StreamID, request util_xds.DiscoveryRequest) error {
+	log := dataPlaneCallbackLog.WithName("OnStreamRequest").WithValues("NodeId", request.NodeId()).WithValues("streamID", streamID)
+	log.Info("stream request callback")
 	if request.NodeId() == "" {
 		// from https://www.envoyproxy.io/docs/envoy/latest/api-docs/xds_protocol#ack-nack-and-versioning:
 		// Only the first request on a stream is guaranteed to carry the node identifier.
@@ -92,11 +97,14 @@ func (d *xdsCallbacks) OnStreamRequest(streamID core_xds.StreamID, request util_
 
 	proxyId, err := core_xds.ParseProxyIdFromString(request.NodeId())
 	if err != nil {
+		log.Error(err, "invalid node ID")
 		return errors.Wrap(err, "invalid node ID")
 	}
 	dpKey := proxyId.ToResourceKey()
+	log = log.WithValues("dpKey", dpKey)
 	metadata := core_xds.DataplaneMetadataFromXdsMetadata(request.Metadata())
 	if metadata == nil {
+		log.Error(errors.New("metadata in xDS Node cannot be nil"), "request metadata is nil")
 		return errors.New("metadata in xDS Node cannot be nil")
 	}
 
@@ -118,10 +126,12 @@ func (d *xdsCallbacks) OnStreamRequest(streamID core_xds.StreamID, request util_
 	d.Unlock()
 
 	if activeStreams == 0 {
+		log.Info("stream is not active, run OnProxyConnected")
 		if err := d.callbacks.OnProxyConnected(streamID, dpKey, dpStream.ctx, *metadata); err != nil {
 			return err
 		}
 	} else {
+		log.Info("stream is active, run OnProxyReconnected")
 		if err := d.callbacks.OnProxyReconnected(streamID, dpKey, dpStream.ctx, *metadata); err != nil {
 			return err
 		}
@@ -130,6 +140,8 @@ func (d *xdsCallbacks) OnStreamRequest(streamID core_xds.StreamID, request util_
 }
 
 func (d *xdsCallbacks) OnStreamOpen(ctx context.Context, streamID core_xds.StreamID, _ string) error {
+	log := dataPlaneCallbackLog.WithName("OnStreamOpen").WithValues("streamID",streamID)
+	log.Info("stream is opened")
 	d.Lock()
 	defer d.Unlock()
 	dps := dpStream{

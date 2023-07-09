@@ -2,7 +2,8 @@ BUILD_DOCKER_IMAGES_DIR ?= $(BUILD_DIR)/docker-images-${GOARCH}
 KUMA_VERSION ?= master
 
 DOCKER_SERVER ?= docker.io
-DOCKER_REGISTRY ?= $(DOCKER_SERVER)/kumahq
+IMAGES_REGISTRY = mvatandoost
+DOCKER_REGISTRY ?= $(DOCKER_SERVER)/$(IMAGES_REGISTRY)
 DOCKER_USERNAME ?=
 DOCKER_API_KEY ?=
 
@@ -21,21 +22,23 @@ images/show: ## output all images that are built with the current configuration
 # Always use Docker BuildKit, see
 # https://docs.docker.com/develop/develop-images/build_enhancements/
 export DOCKER_BUILDKIT := 1
+export BUILDKIT_PROGRESS=plain
+
 
 # add targets to build images for each arch
 # $(1) - GOOS to build for
 define IMAGE_TARGETS_BY_ARCH
 .PHONY: image/static/$(1)
 image/static/$(1): ## Dev: Rebuild `kuma-static` Docker image
-	docker build -t kumahq/static-debian11:no-push-$(1) --build-arg ARCH=$(1) --platform=linux/$(1) -f $(TOOLS_DIR)/releases/dockerfiles/static.Dockerfile .
+	docker build -t kumahq/static-debian11:no-push-$(1) --no-cache --build-arg ARCH=$(1) --platform=linux/$(1) -f $(TOOLS_DIR)/releases/dockerfiles/static.Dockerfile .
 
 .PHONY: image/base/$(1)
 image/base/$(1): ## Dev: Rebuild `kuma-base` Docker image
-	docker build -t kumahq/base-nossl-debian11:no-push-$(1) --build-arg ARCH=$(1) --platform=linux/$(1) -f $(TOOLS_DIR)/releases/dockerfiles/base.Dockerfile .
+	docker build -t kumahq/base-nossl-debian11:no-push-$(1) --no-cache --build-arg ARCH=$(1) --platform=linux/$(1) -f $(TOOLS_DIR)/releases/dockerfiles/base.Dockerfile .
 
 .PHONY: image/base-root/$(1)
 image/base-root/$(1): ## Dev: Rebuild `kuma-base-root` Docker image
-	docker build -t kumahq/base-root-debian11:no-push-$(1) --build-arg ARCH=$(1) --platform=linux/$(1) -f $(TOOLS_DIR)/releases/dockerfiles/base-root.Dockerfile .
+	docker build -t kumahq/base-root-debian11:no-push-$(1) --no-cache --build-arg ARCH=$(1) --platform=linux/$(1) -f $(TOOLS_DIR)/releases/dockerfiles/base-root.Dockerfile .
 
 .PHONY: image/envoy/$(1)
 image/envoy/$(1): build/artifacts-linux-$(1)/envoy ## Dev: Rebuild `envoy` Docker image
