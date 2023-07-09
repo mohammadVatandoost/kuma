@@ -51,7 +51,7 @@ jobs:
     - name: Docker login
       run: docker login  -u $DOCKER_REPOSITORY_NAME -p $DOCKER_REPOSITORY_ACCESS_TOKEN
 
-    - name: download modules 
+    - name: download go modules 
       run: go mod download
 
     - name: Build 
